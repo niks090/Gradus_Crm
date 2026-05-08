@@ -429,9 +429,27 @@ export default function Leads() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [lastSelectedIndex, filteredLeads]);
-  const handleBulkAssign = (newBdm) => {
-    setLeads(leads.map(lead => selectedLeads.includes(lead._id || lead.id) ? { ...lead, bdm: newBdm } : lead));
-    setSelectedLeads([]);
+  const handleBulkAssign = async (newBdm) => {
+    if (!newBdm) return;
+    
+    try {
+      // 1. Update all selected leads in DB
+      const updatePromises = selectedLeads.map(id => databaseService.updateLead(id, { bdm: newBdm }));
+      await Promise.all(updatePromises);
+      
+      // 2. Update local state
+      setLeads(leads.map(lead => 
+        selectedLeads.includes(lead._id || lead.id) ? { ...lead, bdm: newBdm } : lead
+      ));
+      
+      // 3. Clear selection
+      setSelectedLeads([]);
+      setLastSelectedIndex(-1);
+      alert(`Successfully assigned ${selectedLeads.length} leads to ${newBdm}`);
+    } catch (err) {
+      console.error("Bulk assignment failed:", err);
+      alert("Failed to assign leads: " + err.message);
+    }
   };
 
 
@@ -572,7 +590,8 @@ export default function Leads() {
                     </div>
                   </td>
                 </tr>
-              ))}
+              );
+            })}
             </tbody>
           </table>
         </div>
