@@ -540,19 +540,21 @@ export default function Leads() {
                   <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'date', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.date}</td>
                   <td><span className="badge badge-secondary">{lead.leadId}</span></td>
                   <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'name', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.name}</td>
-                  <td 
-                    className="editable-cell" 
-                    contentEditable={isAdmin} 
-                    onBlur={(e) => handleInlineUpdate(currentId, 'mobile', e.target.innerText)} 
-                    onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} 
-                    onClick={(e) => e.stopPropagation()}
-                    style={{ position: 'relative' }}
-                  >
+                  <td onClick={(e) => e.stopPropagation()}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'space-between' }}>
-                      {lead.mobile}
+                      <span 
+                        contentEditable={isAdmin}
+                        suppressContentEditableWarning={true}
+                        onBlur={(e) => handleInlineUpdate(currentId, 'mobile', e.target.innerText)}
+                        onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
+                        style={{ flex: 1, outline: 'none' }}
+                      >
+                        {lead.mobile}
+                      </span>
                       <button 
                         className="btn-call-small"
-                        onClick={(e) => { e.stopPropagation(); handleCall(lead.mobile); }}
+                        contentEditable={false}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleCall(lead.mobile); }}
                         style={{ padding: '4px', border: 'none', background: '#ecfdf5', color: '#059669', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
                         title="Click to Call"
                       >
