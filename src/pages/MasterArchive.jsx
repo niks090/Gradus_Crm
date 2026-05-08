@@ -10,6 +10,7 @@ export default function MasterArchive() {
   const [isLoading, setIsLoading] = useState(true);
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const isAdmin = currentUser.role === 'Admin';
   const isManager = currentUser.role === 'Manager';
   const isPowerUser = isAdmin || isManager;
 
