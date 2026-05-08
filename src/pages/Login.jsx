@@ -12,6 +12,18 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const { error } = await databaseService.signInWithGoogle();
+      if (error) throw error;
+    } catch (err) {
+      setError(err.message || 'Google sign-in failed.');
+      setIsLoading(false);
+    }
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -99,7 +111,7 @@ export default function Login() {
             <span>Or continue with</span>
           </div>
 
-          <button type="button" className="google-login-btn">
+          <button type="button" className="google-login-btn" onClick={handleGoogleLogin} disabled={isLoading}>
             <Globe size={18} />
             <span>Sign in with Google</span>
           </button>

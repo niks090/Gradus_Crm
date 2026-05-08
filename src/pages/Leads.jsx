@@ -476,20 +476,6 @@ export default function Leads() {
         <div className="table-controls flex-between">
           <div style={{ display: 'flex', alignItems: 'center' }}>
 
-            {selectedLeads.length > 0 && (
-              <div className="bulk-actions" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginLeft: '1rem', paddingLeft: '1rem', borderLeft: '1px solid #e5e9f2' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: '600', color: '#5a6480' }}>{selectedLeads.length} selected</span>
-                <select 
-                  className="table-select" 
-                  style={{ height: '32px', fontSize: '0.75rem', padding: '0 8px', backgroundColor: isAdmin ? '#fff' : '#f8f9fa', border: '1px solid #e5e9f2', cursor: isAdmin ? 'pointer' : 'not-allowed' }} 
-                  disabled={!isAdmin}
-                  onChange={(e) => { if (e.target.value) { handleBulkAssign(e.target.value); e.target.value = ''; } }}
-                >
-                  <option value="">Assign to...</option>
-                  {team.map(mate => <option key={mate._id} value={mate.name}>{mate.name}</option>)}
-                </select>
-              </div>
-            )}
           </div>
           <div className="table-stats" style={{ fontSize: '0.75rem', color: '#9aa5be' }}>
             Showing {filteredLeads.length} of {isAdmin ? leads.length : leads.filter(l => l.bdm === currentUser.name).length} leads
@@ -532,8 +518,21 @@ export default function Leads() {
                       className="table-select" 
                       value={lead.bdm} 
                       disabled={!isAdmin}
-                      style={{ cursor: isAdmin ? 'pointer' : 'not-allowed', backgroundColor: isAdmin ? '#fff' : 'transparent', border: isAdmin ? '1px solid #e5e9f2' : 'none' }}
-                      onChange={(e) => handleBdmChange(lead._id || lead.id, e.target.value)}
+                      style={{ 
+                        cursor: isAdmin ? 'pointer' : 'not-allowed', 
+                        backgroundColor: isAdmin ? '#fff' : 'transparent', 
+                        border: isAdmin ? '1px solid #e5e9f2' : 'none',
+                        fontWeight: isSelected ? '600' : 'normal'
+                      }}
+                      onClick={(e) => e.stopPropagation()} // Prevent row click toggle when clicking dropdown
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        if (isSelected && selectedLeads.length > 1) {
+                          handleBulkAssign(newValue);
+                        } else {
+                          handleBdmChange(currentId, newValue);
+                        }
+                      }}
                     >
                       <option value="">Unassigned</option>
                       {team.map(mate => <option key={mate._id} value={mate.name}>{mate.name}</option>)}

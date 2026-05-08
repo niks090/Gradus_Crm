@@ -62,9 +62,10 @@ export default function Header() {
         // Filter out very old meetings and sort by time
         const now = new Date();
         const upcomingMeetings = allMeetings
-          .filter(m => new Date(m.meetingTime) > new Date(now.getTime() - 24 * 60 * 60000)) // Last 24h onwards
+          .filter(m => new Date(m.meetingTime) > new Date(now.getTime() - 24 * 60 * 60000))
           .sort((a, b) => new Date(a.meetingTime) - new Date(b.meetingTime));
         
+        console.log(`[Notification Check] Found ${upcomingMeetings.length} relevant meetings.`);
         setMeetings(upcomingMeetings);
         
         const thirtyMinutesFromNow = new Date(now.getTime() + 30 * 60000);
@@ -75,8 +76,11 @@ export default function Header() {
           const meetingTime = new Date(meeting.meetingTime);
           // Trigger if meeting is starting within 30 minutes
           if (meetingTime > now && meetingTime <= thirtyMinutesFromNow) {
+            console.log(`[Notification Trigger] Alerting for meeting: ${meeting.leadName}`);
             // Play Notification Sound
-            audio.play().catch(e => console.log('Audio playback requires user interaction first:', e));
+            audio.play().catch(e => {
+              console.warn('Audio playback blocked by browser. Click anywhere on the page to enable sound.', e);
+            });
 
             // Trigger In-App Toast
             setActiveToast({

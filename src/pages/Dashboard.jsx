@@ -18,13 +18,37 @@ export default function Dashboard() {
   const totalCompletedDeals = dashboardOnboardings.length; 
   const winRate = totalCompletedDeals > 0 ? 100 : 0; 
 
-  // Use local date for "Today" to match user's timezone
-  const today = new Date().toLocaleDateString('en-CA'); 
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  const currentDate = now.getDate();
+  const today = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(currentDate).padStart(2, '0')}`;
+  
   const freshLeadsToday = dashboardLeads.filter(l => {
-    const leadDate = l.date; // Usually YYYY-MM-DD
-    const systemDate = l.createdat ? new Date(l.createdat).toLocaleDateString('en-CA') : null;
-    return leadDate === today || systemDate === today;
+    // Check manual date
+    if (l.date && l.date.includes(today)) return true;
+    
+    // Check system date (CreatedAt) - Convert to local time components
+    if (l.createdat) {
+      const d = new Date(l.createdat);
+      if (!isNaN(d.getTime())) {
+        return d.getFullYear() === currentYear && 
+               d.getMonth() === currentMonth && 
+               d.getDate() === currentDate;
+      }
+    }
+    
+    // Fallback: check manual date with simple string match
+    if (l.date && l.date.includes(`${currentYear}`) && l.date.includes(`${currentMonth + 1}`) && l.date.includes(`${currentDate}`)) {
+        return true;
+    }
+
+    return false;
   }).length;
+
+  console.log(`[Dashboard Debug] Today is: ${today}`);
+  console.log(`[Dashboard Debug] Leads sample:`, dashboardLeads.slice(0, 2).map(l => ({ id: l.leadId, date: l.date, createdat: l.createdat })));
+  
   const newLeadsCount = dashboardLeads.length;
 
   const formatTimeAgo = (isoString) => {

@@ -205,6 +205,7 @@ const createMeeting = async (payload) => {
   const record = {
     _id: uid('mt'),
     ...payload,
+    notified: false,
     createdat: new Date().toISOString(),
     updatedat: new Date().toISOString(),
   };
@@ -347,7 +348,7 @@ const verifyLogin = async (email, password) => {
   const { data, error } = await supabase
     .from('users')
     .select('*')
-    .eq('email', email)
+    .ilike('email', email)
     .eq('password', password)
     .eq('status', 'Active')
     .single();
@@ -363,7 +364,7 @@ const updateUserPassword = async (email, currentPassword, newPassword) => {
   const { data: users, error } = await supabase
     .from('users')
     .select('*')
-    .eq('email', email);
+    .ilike('email', email);
   if (error) throw error;
 
   const user = users?.[0];
@@ -425,6 +426,18 @@ const deleteBrochure = async (id) => {
 };
 
 // ─────────────────────────────────────────────────
+// Authentication (OAuth)
+// ─────────────────────────────────────────────────
+const signInWithGoogle = async () => {
+  return await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin + '/login'
+    }
+  });
+};
+
+// ─────────────────────────────────────────────────
 // Public service object – mirrors old IndexedDB API
 // ─────────────────────────────────────────────────
 export const databaseService = {
@@ -465,6 +478,8 @@ export const databaseService = {
   fetchArchive,
   fetchMasterArchive: fetchArchive,
   logToArchive,
+  // Auth
+  signInWithGoogle,
 };
 
 export default databaseService;

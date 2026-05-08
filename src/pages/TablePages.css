@@ -67,7 +67,8 @@
 }
 
 .selected-row td {
-  background-color: rgba(79,142,247,0.06) !important;
+  background-color: #e3f2fd !important;
+  border-bottom: 1px solid #bbdefb;
 }
 
 
