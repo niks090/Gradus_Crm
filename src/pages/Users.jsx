@@ -14,6 +14,8 @@ export default function Users() {
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isAdmin = currentUser.role === 'Admin';
+  const isManager = currentUser.role === 'Manager';
+  const isPowerUser = isAdmin || isManager;
 
   const loadUsers = async () => {
     const data = await databaseService.fetchUsers();
@@ -31,7 +33,7 @@ export default function Users() {
 
   const handleSaveUser = async (e) => {
     e.preventDefault();
-    if (!isAdmin) return;
+    if (!isPowerUser) return;
 
     try {
       if (editingUserId) {
@@ -75,13 +77,13 @@ export default function Users() {
   };
 
   const handleToggleStatus = async (user) => {
-    if (!isAdmin) return;
+    if (!isPowerUser) return;
     const newStatus = user.status === 'Active' ? 'Inactive' : 'Active';
     await databaseService.updateUser(user._id, { status: newStatus });
     loadUsers();
   };
 
-  if (!isAdmin) {
+  if (!isPowerUser) {
     return (
       <div className="page-container" style={{ justifyContent: 'center', alignItems: 'center', height: '100%' }}>
         <div style={{ textAlign: 'center', color: '#6b7280' }}>
@@ -215,7 +217,7 @@ export default function Users() {
                   <select name="role" value={formData.role} onChange={handleInputChange}>
                     <option value="User">User</option>
                     <option value="Manager">Manager</option>
-                    <option value="Admin">Admin</option>
+                    {isAdmin && <option value="Admin">Admin</option>}
                   </select>
                 </div>
                 <div className="form-group">

@@ -10,7 +10,8 @@ export default function MasterArchive() {
   const [isLoading, setIsLoading] = useState(true);
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isAdmin = currentUser.role === 'Admin';
+  const isManager = currentUser.role === 'Manager';
+  const isPowerUser = isAdmin || isManager;
 
   useEffect(() => {
     const loadLogs = async () => {
@@ -33,7 +34,7 @@ export default function MasterArchive() {
     return matchesSearch && matchesAction;
   });
 
-  if (!isAdmin) {
+  if (!isPowerUser) {
     return (
       <div className="page-container" style={{ justifyContent: 'center', alignItems: 'center', height: '100%' }}>
         <div style={{ textAlign: 'center', color: '#6b7280' }}>

@@ -49,10 +49,11 @@ export default function Sidebar() {
 
   // Get current user to check role
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isAdmin = currentUser.role === 'Admin';
+  const isManager = currentUser.role === 'Manager';
+  const isPowerUser = isAdmin || isManager;
 
   const groupsToRender = [...NAV_GROUPS];
-  if (isAdmin) {
+  if (isPowerUser) {
     groupsToRender.push({
       label: 'Administration',
       items: [

@@ -29,9 +29,11 @@ export default function StatusPage() {
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isAdmin = currentUser.role === 'Admin';
+  const isManager = currentUser.role === 'Manager';
+  const isPowerUser = isAdmin || isManager;
 
-  // Filter leads by user role first
-  const userLeads = leads.filter(l => isAdmin || l.bdm === currentUser.name);
+  // Filter leads by user role first: Admins/Managers see all, Users see only assigned.
+  const userLeads = leads.filter(l => isPowerUser || l.bdm === currentUser.name);
   const totalLeads = userLeads.length;
 
   // Calculate status summaries
