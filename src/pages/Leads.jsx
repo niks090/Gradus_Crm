@@ -433,22 +433,26 @@ export default function Leads() {
     if (!newBdm) return;
     
     try {
-      // 1. Update all selected leads in DB
-      const updatePromises = selectedLeads.map(id => databaseService.updateLead(id, { bdm: newBdm }));
-      await Promise.all(updatePromises);
+      const updates = selectedLeads.map(id => databaseService.updateLead(id, { bdm: bdmName }));
+      await Promise.all(updates);
       
-      // 2. Update local state
-      setLeads(leads.map(lead => 
-        selectedLeads.includes(lead._id || lead.id) ? { ...lead, bdm: newBdm } : lead
-      ));
+      const updatedLeads = await databaseService.fetchLeads();
+      setLeads(updatedLeads);
       
-      // 3. Clear selection
+      alert(`Successfully assigned ${selectedLeads.length} leads to ${bdmName}`);
       setSelectedLeads([]);
-      setLastSelectedIndex(-1);
-      alert(`Successfully assigned ${selectedLeads.length} leads to ${newBdm}`);
     } catch (err) {
       console.error("Bulk assignment failed:", err);
-      alert("Failed to assign leads: " + err.message);
+      alert("Failed to assign leads. Please try again.");
+    }
+  };
+
+  const handleInlineUpdate = async (id, field, value) => {
+    try {
+      const updatedLead = await databaseService.updateLead(id, { [field]: value });
+      setLeads(prev => prev.map(l => (l._id === id || l.id === id) ? updatedLead : l));
+    } catch (err) {
+      console.error("Inline update failed:", err);
     }
   };
 
@@ -512,7 +516,16 @@ export default function Leads() {
                         }} 
                       />
                     </td>
-                  <td>{lead.date}</td><td><span className="badge badge-secondary">{lead.leadId}</span></td><td>{lead.name}</td><td>{lead.mobile}</td><td>{lead.email}</td><td>{lead.state}</td><td>{lead.type1}</td><td>{lead.type2}</td><td>{lead.profession}</td><td>{lead.ctc}</td>
+                  <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'date', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.date}</td>
+                  <td><span className="badge badge-secondary">{lead.leadId}</span></td>
+                  <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'name', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.name}</td>
+                  <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'mobile', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.mobile}</td>
+                  <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'email', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.email}</td>
+                  <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'state', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.state}</td>
+                  <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'type1', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.type1}</td>
+                  <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'type2', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.type2}</td>
+                  <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'profession', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.profession}</td>
+                  <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'ctc', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.ctc}</td>
                   <td>
                     <select 
                       className="table-select" 

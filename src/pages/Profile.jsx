@@ -181,6 +181,11 @@ export default function Profile() {
                   name="email" 
                   value={formData.email} 
                   onChange={handleInputChange} 
+                  readOnly={user.role !== 'Admin'}
+                  style={{ 
+                    cursor: user.role !== 'Admin' ? 'not-allowed' : 'text',
+                    backgroundColor: user.role !== 'Admin' ? '#f3f4f6' : '#fff'
+                  }}
                   required 
                 />
               </div>
