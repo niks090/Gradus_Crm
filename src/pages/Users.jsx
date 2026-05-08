@@ -33,7 +33,7 @@ export default function Users() {
 
   const handleSaveUser = async (e) => {
     e.preventDefault();
-    if (!isPowerUser) return;
+    if (!isAdmin) return;
 
     try {
       if (editingUserId) {
@@ -77,7 +77,7 @@ export default function Users() {
   };
 
   const handleToggleStatus = async (user) => {
-    if (!isPowerUser) return;
+    if (!isPowerUser || (isManager && user.role === 'Admin')) return;
     const newStatus = user.status === 'Active' ? 'Inactive' : 'Active';
     await databaseService.updateUser(user._id, { status: newStatus });
     loadUsers();
@@ -89,7 +89,7 @@ export default function Users() {
         <div style={{ textAlign: 'center', color: '#6b7280' }}>
           <ShieldAlert size={64} style={{ margin: '0 auto 1rem', color: '#ef4444' }} />
           <h2>Access Restricted</h2>
-          <p>You need Administrator privileges to view and manage users.</p>
+          <p>You need Administrator or Manager privileges to view this page.</p>
         </div>
       </div>
     );
@@ -102,16 +102,15 @@ export default function Users() {
           <h1>Team Management</h1>
           <p>Manage CRM users, roles, and access permissions.</p>
         </div>
-        <button 
-          className="btn btn-primary" 
-          onClick={() => {
+        {isAdmin && (
+          <button className="btn btn-primary" onClick={() => {
             setEditingUserId(null);
             setFormData({ name: '', email: '', password: '', role: 'User', status: 'Active' });
             setIsModalOpen(true);
-          }}
-        >
-          <Plus size={16} /> Add User
-        </button>
+          }}>
+            <Plus size={16} /> Add User
+          </button>
+        )}
       </div>
 
       <div className="card table-container">
@@ -156,22 +155,26 @@ export default function Users() {
                   <td>{user.createdat ? new Date(user.createdat).toLocaleDateString() : '-'}</td>
                   <td>
                     <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                      <button 
-                        className="btn btn-secondary" 
-                        style={{ padding: '6px', backgroundColor: user.status === 'Active' ? '#fee2e2' : '#d1fae5', color: user.status === 'Active' ? '#991b1b' : '#065f46', border: 'none' }}
-                        onClick={() => handleToggleStatus(user)}
-                        title={user.status === 'Active' ? 'Deactivate User' : 'Activate User'}
-                      >
-                        {user.status === 'Active' ? <UserX size={16} /> : <UserCheck size={16} />}
-                      </button>
-                      <button 
-                        className="btn btn-secondary" 
-                        style={{ padding: '6px' }}
-                        onClick={() => handleEdit(user)}
-                        title="Edit User"
-                      >
-                        <Edit2 size={16} />
-                      </button>
+                      {(isAdmin || (isManager && user.role !== 'Admin')) && (
+                        <button 
+                          className="btn btn-secondary" 
+                          style={{ padding: '6px', backgroundColor: user.status === 'Active' ? '#fee2e2' : '#d1fae5', color: user.status === 'Active' ? '#991b1b' : '#065f46', border: 'none' }}
+                          onClick={() => handleToggleStatus(user)}
+                          title={user.status === 'Active' ? 'Deactivate User' : 'Activate User'}
+                        >
+                          {user.status === 'Active' ? <UserX size={16} /> : <UserCheck size={16} />}
+                        </button>
+                      )}
+                      {isAdmin && (
+                        <button 
+                          className="btn btn-secondary" 
+                          style={{ padding: '6px' }}
+                          onClick={() => handleEdit(user)}
+                          title="Edit User"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                      )}
                       {user.email !== 'admin@gradus.com' && (
                         <button 
                           className="btn btn-danger" 

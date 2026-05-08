@@ -458,6 +458,7 @@ export default function Leads() {
   };
 
   const handleInlineUpdate = async (id, field, value) => {
+    if (!isAdmin) return;
     try {
       const updatedLead = await databaseService.updateLead(id, { [field]: value });
       setLeads(prev => prev.map(l => (l._id === id || l.id === id) ? updatedLead : l));
@@ -548,13 +549,13 @@ export default function Leads() {
                         }} 
                       />
                     </td>
-                  <td contentEditable={isPowerUser} onBlur={(e) => handleInlineUpdate(currentId, 'date', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.date}</td>
+                  <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'date', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.date}</td>
                   <td><span className="badge badge-secondary">{lead.leadId}</span></td>
-                  <td contentEditable={isPowerUser} onBlur={(e) => handleInlineUpdate(currentId, 'name', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.name}</td>
+                  <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'name', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.name}</td>
                   <td onClick={(e) => e.stopPropagation()}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'space-between' }}>
                       <span 
-                        contentEditable={isPowerUser}
+                        contentEditable={isAdmin}
                         suppressContentEditableWarning={true}
                         onBlur={(e) => handleInlineUpdate(currentId, 'mobile', e.target.innerText)}
                         onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
@@ -573,12 +574,12 @@ export default function Leads() {
                       </button>
                     </div>
                   </td>
-                  <td contentEditable={isPowerUser} onBlur={(e) => handleInlineUpdate(currentId, 'email', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.email}</td>
-                  <td contentEditable={isPowerUser} onBlur={(e) => handleInlineUpdate(currentId, 'state', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.state}</td>
-                  <td contentEditable={isPowerUser} onBlur={(e) => handleInlineUpdate(currentId, 'type1', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.type1}</td>
-                  <td contentEditable={isPowerUser} onBlur={(e) => handleInlineUpdate(currentId, 'type2', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.type2}</td>
-                  <td contentEditable={isPowerUser} onBlur={(e) => handleInlineUpdate(currentId, 'profession', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.profession}</td>
-                  <td contentEditable={isPowerUser} onBlur={(e) => handleInlineUpdate(currentId, 'ctc', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.ctc}</td>
+                  <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'email', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.email}</td>
+                  <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'state', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.state}</td>
+                  <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'type1', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.type1}</td>
+                  <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'type2', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.type2}</td>
+                  <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'profession', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.profession}</td>
+                  <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'ctc', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.ctc}</td>
                   <td>
                     <select 
                       className="table-select" 
