@@ -7,7 +7,8 @@ export default function Users() {
   const [users, setUsers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
-    name: '', email: '', password: '', role: 'User', status: 'Active'
+    name: '', email: '', password: '', role: 'User', status: 'Active',
+    smartflo_did: '', smartflo_agent: ''
   });
   const [editingUserId, setEditingUserId] = useState(null);
 
@@ -39,7 +40,7 @@ export default function Users() {
     }
     
     setIsModalOpen(false);
-    setFormData({ name: '', email: '', password: '', role: 'User', status: 'Active' });
+    setFormData({ name: '', email: '', password: '', role: 'User', status: 'Active', smartflo_did: '', smartflo_agent: '' });
     setEditingUserId(null);
     loadUsers(); // Refresh
   };
@@ -59,7 +60,9 @@ export default function Users() {
       email: user.email,
       password: user.password, // Careful in real apps!
       role: user.role,
-      status: user.status
+      status: user.status,
+      smartflo_did: user.smartflo_did || '',
+      smartflo_agent: user.smartflo_agent || ''
     });
     setIsModalOpen(true);
   };
@@ -111,6 +114,8 @@ export default function Users() {
                 <th>Email</th>
                 <th>Role</th>
                 <th>Status</th>
+                <th>DID</th>
+                <th>Agent No</th>
                 <th>Joined</th>
                 <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
@@ -137,6 +142,8 @@ export default function Users() {
                       {user.status}
                     </span>
                   </td>
+                  <td>{user.smartflo_did || '-'}</td>
+                  <td>{user.smartflo_agent || '-'}</td>
                   <td>{new Date(user.createdAt).toLocaleDateString()}</td>
                   <td>
                     <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
@@ -210,6 +217,17 @@ export default function Users() {
                     <option value="Active">Active</option>
                     <option value="Inactive">Inactive</option>
                   </select>
+                </div>
+              </div>
+
+              <div className="form-grid" style={{ marginBottom: '1.5rem' }}>
+                <div className="form-group">
+                  <label>SmartFlo DID (Caller ID)</label>
+                  <input type="text" name="smartflo_did" value={formData.smartflo_did} onChange={handleInputChange} placeholder="91806..." />
+                </div>
+                <div className="form-group">
+                  <label>SmartFlo Agent No (Ext)</label>
+                  <input type="text" name="smartflo_agent" value={formData.smartflo_agent} onChange={handleInputChange} placeholder="101" />
                 </div>
               </div>
               <div className="modal-actions">

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { Search, UserPlus, ChevronDown, Check } from 'lucide-react';
+import { Search, UserPlus, ChevronDown, Check, Phone } from 'lucide-react';
+import { telephonyService } from '../services/telephonyService';
 import { useCrm } from '../context/CrmContext';
 import { databaseService } from '../services/databaseService';
 import './TablePages.css';
@@ -456,6 +457,24 @@ export default function Leads() {
     }
   };
 
+  const handleCall = async (phoneNumber) => {
+    if (!phoneNumber) return;
+    try {
+      // Get the most up-to-date user info (including DID/Agent)
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      if (!user.smartflo_agent || !user.smartflo_did) {
+        alert("Wait! Your Agent Number or DID is not set. Please update your profile or ask the Admin to set it in 'Team Management'.");
+        return;
+      }
+
+      await telephonyService.initiateCall(user.smartflo_agent, phoneNumber, user.smartflo_did);
+      alert(`Request sent! SmartFlo will now call your extension and then connect to ${phoneNumber}.`);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
 
   return (
     <div className="page-container">
@@ -519,7 +538,26 @@ export default function Leads() {
                   <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'date', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.date}</td>
                   <td><span className="badge badge-secondary">{lead.leadId}</span></td>
                   <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'name', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.name}</td>
-                  <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'mobile', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.mobile}</td>
+                  <td 
+                    className="editable-cell" 
+                    contentEditable={isAdmin} 
+                    onBlur={(e) => handleInlineUpdate(currentId, 'mobile', e.target.innerText)} 
+                    onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} 
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ position: 'relative' }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'space-between' }}>
+                      {lead.mobile}
+                      <button 
+                        className="btn-call-small"
+                        onClick={(e) => { e.stopPropagation(); handleCall(lead.mobile); }}
+                        style={{ padding: '4px', border: 'none', background: '#ecfdf5', color: '#059669', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                        title="Click to Call"
+                      >
+                        <Phone size={12} />
+                      </button>
+                    </div>
+                  </td>
                   <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'email', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.email}</td>
                   <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'state', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.state}</td>
                   <td contentEditable={isAdmin} onBlur={(e) => handleInlineUpdate(currentId, 'type1', e.target.innerText)} onKeyDown={(e) => e.key === 'Enter' && e.target.blur()} onClick={(e) => e.stopPropagation()}>{lead.type1}</td>

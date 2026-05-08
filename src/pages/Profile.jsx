@@ -30,7 +30,9 @@ export default function Profile() {
             email: found.email,
             password: found.password,
             confirmPassword: found.password,
-            photo: found.photo || ''
+            photo: found.photo || '',
+            smartflo_did: found.smartflo_did || '',
+            smartflo_agent: found.smartflo_agent || ''
           });
         }
       };
@@ -70,11 +72,20 @@ export default function Profile() {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        photo: formData.photo
+        photo: formData.photo,
+        smartflo_did: formData.smartflo_did,
+        smartflo_agent: formData.smartflo_agent
       });
 
       // Update local storage too
-      const updatedUser = { ...user, name: formData.name, email: formData.email, photo: formData.photo };
+      const updatedUser = { 
+        ...user, 
+        name: formData.name, 
+        email: formData.email, 
+        photo: formData.photo,
+        smartflo_did: formData.smartflo_did,
+        smartflo_agent: formData.smartflo_agent
+      };
       localStorage.setItem('user', JSON.stringify(updatedUser));
       
       setShowSuccess(true);
