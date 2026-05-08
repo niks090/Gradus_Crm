@@ -91,7 +91,9 @@ export default function Profile() {
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (err) {
-      setError('Failed to update profile. Email might already be in use.');
+      console.error("Profile update failed:", err);
+      setError(`Failed to update profile: ${err.message || 'Unknown error'}`);
+      alert(`Update Error: ${err.message}`);
     } finally {
       setIsSaving(false);
     }
@@ -198,6 +200,41 @@ export default function Profile() {
                     backgroundColor: user.role !== 'Admin' ? '#f3f4f6' : '#fff'
                   }}
                   required 
+                />
+              </div>
+              <div className="form-group">
+                <label>SmartFlo DID</label>
+                <select 
+                  name="smartflo_did" 
+                  value={formData.smartflo_did} 
+                  onChange={handleInputChange}
+                  disabled={user.role !== 'Admin'}
+                  style={{ 
+                    cursor: user.role !== 'Admin' ? 'not-allowed' : 'pointer',
+                    backgroundColor: user.role !== 'Admin' ? '#f3f4f6' : '#fff'
+                  }}
+                >
+                  <option value="">Select DID</option>
+                  <option value="918065909568">918065909568</option>
+                  <option value="918065909569">918065909569</option>
+                  <option value="918065909570">918065909570</option>
+                  <option value="918065909571">918065909571</option>
+                  <option value="918065909572">918065909572</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>SmartFlo Agent No (Ext)</label>
+                <input 
+                  type="text" 
+                  name="smartflo_agent" 
+                  value={formData.smartflo_agent} 
+                  onChange={handleInputChange} 
+                  readOnly={user.role !== 'Admin'}
+                  style={{ 
+                    cursor: user.role !== 'Admin' ? 'not-allowed' : 'text',
+                    backgroundColor: user.role !== 'Admin' ? '#f3f4f6' : '#fff'
+                  }}
+                  placeholder="e.g. 101"
                 />
               </div>
               <div className="form-group">

@@ -33,16 +33,23 @@ export default function Users() {
     e.preventDefault();
     if (!isAdmin) return;
 
-    if (editingUserId) {
-      await databaseService.updateUser(editingUserId, formData);
-    } else {
-      await databaseService.createUser(formData);
+    try {
+      if (editingUserId) {
+        await databaseService.updateUser(editingUserId, formData);
+        alert("User updated successfully!");
+      } else {
+        await databaseService.createUser(formData);
+        alert("User created successfully!");
+      }
+      
+      setIsModalOpen(false);
+      setFormData({ name: '', email: '', password: '', role: 'User', status: 'Active', smartflo_did: '', smartflo_agent: '' });
+      setEditingUserId(null);
+      loadUsers(); // Refresh
+    } catch (err) {
+      console.error("User save failed:", err);
+      alert(`Failed to save user: ${err.message || 'Unknown error'}`);
     }
-    
-    setIsModalOpen(false);
-    setFormData({ name: '', email: '', password: '', role: 'User', status: 'Active', smartflo_did: '', smartflo_agent: '' });
-    setEditingUserId(null);
-    loadUsers(); // Refresh
   };
 
   const handleDelete = async (id) => {
@@ -144,7 +151,7 @@ export default function Users() {
                   </td>
                   <td>{user.smartflo_did || '-'}</td>
                   <td>{user.smartflo_agent || '-'}</td>
-                  <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                  <td>{user.createdat ? new Date(user.createdat).toLocaleDateString() : '-'}</td>
                   <td>
                     <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                       <button 
@@ -223,11 +230,18 @@ export default function Users() {
               <div className="form-grid" style={{ marginBottom: '1.5rem' }}>
                 <div className="form-group">
                   <label>SmartFlo DID (Caller ID)</label>
-                  <input type="text" name="smartflo_did" value={formData.smartflo_did} onChange={handleInputChange} placeholder="91806..." />
+                  <select name="smartflo_did" value={formData.smartflo_did} onChange={handleInputChange}>
+                    <option value="">Select DID</option>
+                    <option value="918065909568">918065909568</option>
+                    <option value="918065909569">918065909569</option>
+                    <option value="918065909570">918065909570</option>
+                    <option value="918065909571">918065909571</option>
+                    <option value="918065909572">918065909572</option>
+                  </select>
                 </div>
                 <div className="form-group">
                   <label>SmartFlo Agent No (Ext)</label>
-                  <input type="text" name="smartflo_agent" value={formData.smartflo_agent} onChange={handleInputChange} placeholder="101" />
+                  <input type="text" name="smartflo_agent" value={formData.smartflo_agent} onChange={handleInputChange} placeholder="e.g. 101" />
                 </div>
               </div>
               <div className="modal-actions">

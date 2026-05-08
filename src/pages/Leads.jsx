@@ -460,16 +460,18 @@ export default function Leads() {
   const handleCall = async (phoneNumber) => {
     if (!phoneNumber) return;
     try {
-      // Get the most up-to-date user info (including DID/Agent)
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      // Get the most up-to-date user info from DB to avoid stale localStorage
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const users = await databaseService.fetchUsers();
+      const user = users.find(u => u._id === storedUser._id);
       
-      if (!user.smartflo_agent || !user.smartflo_did) {
+      if (!user || !user.smartflo_agent || !user.smartflo_did) {
         alert("Wait! Your Agent Number or DID is not set. Please update your profile or ask the Admin to set it in 'Team Management'.");
         return;
       }
 
       await telephonyService.initiateCall(user.smartflo_agent, phoneNumber, user.smartflo_did);
-      alert(`Request sent! SmartFlo will now call your extension and then connect to ${phoneNumber}.`);
+      alert(`Request sent! SmartFlo will now call your extension (${user.smartflo_agent}) and then connect to ${phoneNumber}.`);
     } catch (err) {
       alert(err.message);
     }
