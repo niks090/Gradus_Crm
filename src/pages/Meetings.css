@@ -1,0 +1,95 @@
+.filter-tabs {
+  display: flex;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 8px;
+  gap: 4px;
+}
+
+.filter-tab {
+  padding: 6px 16px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-tab:hover {
+  color: #1e293b;
+}
+
+.filter-tab.active {
+  background: white;
+  color: var(--color-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.user-badge {
+  background: #f0fdfa;
+  color: #0d9488;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid #ccfbf1;
+}
+
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.empty-meetings {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.text-muted {
+  color: #94a3b8;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.badge {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.badge:hover {
+  opacity: 0.8;
+}
+
+.badge-outline-primary {
+  background-color: transparent;
+  color: #2563eb;
+  border: 1px solid #2563eb;
+}
+
+.badge-outline-danger {
+  background-color: transparent;
+  color: #dc2626;
+  border: 1px solid #dc2626;
+  animation: pulse-border 2s infinite;
+}
+
+.badge-outline-secondary {
+  background-color: transparent;
+  color: #94a3b8;
+  border: 1px solid #94a3b8;
+}
+
+@keyframes pulse-border {
+  0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+}
+
