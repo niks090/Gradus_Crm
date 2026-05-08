@@ -158,6 +158,25 @@ export default function Leads() {
   }, []);
 
   // Advanced CSV Parser to handle commas inside quotes
+  const filteredLeads = leads.sort((a, b) => (b.id || 0) - (a.id || 0)).filter(lead => {
+    const query = searchQuery.toLowerCase();
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const isAdmin = currentUser.role === 'Admin';
+    
+    // 1. Role-based filtering: Non-admins only see leads assigned to them
+    const matchesUser = isAdmin || lead.bdm === currentUser.name;
+    
+    // 2. Search-based filtering
+    const matchesSearch = (
+      (lead.leadId && lead.leadId.toLowerCase().includes(query)) ||
+      (lead.email && lead.email.toLowerCase().includes(query)) ||
+      (lead.mobile && lead.mobile.toLowerCase().includes(query)) ||
+      (lead.name && lead.name.toLowerCase().includes(query))
+    );
+
+    return matchesUser && matchesSearch;
+  });
+
   const parseCSVRow = (text) => {
     let result = [];
     let cur = '';
@@ -410,24 +429,6 @@ export default function Leads() {
     setSelectedLeads([]);
   };
 
-  const filteredLeads = leads.sort((a, b) => (b.id || 0) - (a.id || 0)).filter(lead => {
-    const query = searchQuery.toLowerCase();
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    const isAdmin = currentUser.role === 'Admin';
-    
-    // 1. Role-based filtering: Non-admins only see leads assigned to them
-    const matchesUser = isAdmin || lead.bdm === currentUser.name;
-    
-    // 2. Search-based filtering
-    const matchesSearch = (
-      (lead.leadId && lead.leadId.toLowerCase().includes(query)) ||
-      (lead.email && lead.email.toLowerCase().includes(query)) ||
-      (lead.mobile && lead.mobile.toLowerCase().includes(query)) ||
-      (lead.name && lead.name.toLowerCase().includes(query))
-    );
-
-    return matchesUser && matchesSearch;
-  });
 
   return (
     <div className="page-container">
