@@ -6,10 +6,12 @@ export default function Dashboard() {
   const { onboardings, leads, activities } = useCrm();
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isAdmin = currentUser.role === 'Admin';
+  const isManager = currentUser.role === 'Manager';
+  const isPowerUser = isAdmin || isManager;
 
-  // Filter data based on role
-  const dashboardLeads = leads.filter(l => isAdmin || l.bdm === currentUser.name);
-  const dashboardOnboardings = onboardings.filter(o => isAdmin || o.bdm === currentUser.name);
+  // Filter data based on role: Power users (Admin/Manager) see all, Users see only their own.
+  const dashboardLeads = leads.filter(l => isPowerUser || l.bdm === currentUser.name);
+  const dashboardOnboardings = onboardings.filter(o => isPowerUser || o.bdm === currentUser.name);
 
   // Calculate total revenue from onboardings
   const totalRevenue = dashboardOnboardings.reduce((sum, ob) => sum + (Number(ob.totalFees) || 0), 0);
@@ -146,7 +148,7 @@ export default function Dashboard() {
           </div>
           <ul className="activity-list">
             {activities
-              .filter(a => isAdmin || a.performedBy === currentUser.name)
+              .filter(a => isPowerUser || a.performedBy === currentUser.name)
               .map(activity => (
               <li key={activity.id} className="activity-item">
                 <div className={`activity-dot ${activity.color}`}></div>
@@ -156,7 +158,7 @@ export default function Dashboard() {
                 </div>
               </li>
             ))}
-            {activities.filter(a => isAdmin || a.performedBy === currentUser.name).length === 0 && (
+            {activities.filter(a => isPowerUser || a.performedBy === currentUser.name).length === 0 && (
               <li className="activity-item">
                 <div className="activity-text"><p>No recent activity</p></div>
               </li>
