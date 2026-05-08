@@ -434,11 +434,18 @@ export default function Leads() {
     if (!newBdm) return;
     
     try {
+      // 1. Update all selected leads in the database
       const updates = selectedLeads.map(id => databaseService.updateLead(id, { bdm: newBdm }));
       await Promise.all(updates);
       
-      const updatedLeads = await databaseService.fetchLeads();
-      setLeads(updatedLeads);
+      // 2. Update local state immediately for better responsiveness
+      setLeads(prevLeads => prevLeads.map(lead => {
+        const currentId = lead._id || lead.id;
+        if (selectedLeads.includes(currentId)) {
+          return { ...lead, bdm: newBdm };
+        }
+        return lead;
+      }));
       
       alert(`Successfully assigned ${selectedLeads.length} leads to ${newBdm}`);
       setSelectedLeads([]);
