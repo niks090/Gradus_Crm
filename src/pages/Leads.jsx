@@ -434,13 +434,13 @@ export default function Leads() {
     if (!newBdm) return;
     
     try {
-      const updates = selectedLeads.map(id => databaseService.updateLead(id, { bdm: bdmName }));
+      const updates = selectedLeads.map(id => databaseService.updateLead(id, { bdm: newBdm }));
       await Promise.all(updates);
       
       const updatedLeads = await databaseService.fetchLeads();
       setLeads(updatedLeads);
       
-      alert(`Successfully assigned ${selectedLeads.length} leads to ${bdmName}`);
+      alert(`Successfully assigned ${selectedLeads.length} leads to ${newBdm}`);
       setSelectedLeads([]);
     } catch (err) {
       console.error("Bulk assignment failed:", err);
