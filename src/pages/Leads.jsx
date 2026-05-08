@@ -373,59 +373,64 @@ export default function Leads() {
   const handleRowClick = (index, event) => {
     const lead = filteredLeads[index];
     if (!lead) return;
+    const currentId = lead._id || lead.id;
 
     if (event.shiftKey && lastSelectedIndex !== -1) {
+      // SHIFT + CLICK: Select Range
       const start = Math.min(lastSelectedIndex, index);
       const end = Math.max(lastSelectedIndex, index);
-      const rangeIds = filteredLeads.slice(start, end + 1).map(l => l.id);
+      const rangeIds = filteredLeads.slice(start, end + 1).map(l => l._id || l.id);
       
-      // Combine with existing selected except for those in the range to avoid duplicates, 
-      // or just set the range as the selection depending on desired behavior.
-      // Standard behavior is to select the range.
-      setSelectedLeads(Array.from(new Set([...selectedLeads, ...rangeIds])));
-    } else {
-      const isSelected = selectedLeads.includes(lead.id);
+      // Usually Shift+Click adds the range to existing or replaces? 
+      // Spreadsheet style: replaces current selection with range from anchor to click
+      setSelectedLeads(rangeIds);
+    } else if (event.ctrlKey || event.metaKey) {
+      // CTRL + CLICK: Toggle single
+      const isSelected = selectedLeads.includes(currentId);
       if (isSelected) {
-        setSelectedLeads(selectedLeads.filter(id => id !== lead.id));
+        setSelectedLeads(selectedLeads.filter(id => id !== currentId));
       } else {
-        setSelectedLeads([...selectedLeads, lead.id]);
+        setSelectedLeads([...selectedLeads, currentId]);
       }
+      setLastSelectedIndex(index);
+    } else {
+      // SINGLE CLICK: Select one, deselect others
+      setSelectedLeads([currentId]);
+      setLastSelectedIndex(index);
     }
-    setLastSelectedIndex(index);
   };
 
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.shiftKey && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
         e.preventDefault();
-        let nextIndex = lastSelectedIndex;
-        if (e.key === 'ArrowDown') {
-          nextIndex = Math.min(filteredLeads.length - 1, lastSelectedIndex + 1);
-        } else {
-          nextIndex = Math.max(0, lastSelectedIndex - 1);
-        }
+        if (lastSelectedIndex === -1) return;
+
+        let nextIndex = e.key === 'ArrowDown' 
+          ? Math.min(filteredLeads.length - 1, lastSelectedIndex + 1)
+          : Math.max(0, lastSelectedIndex - 1);
 
         if (nextIndex !== lastSelectedIndex) {
-          const lead = filteredLeads[nextIndex];
-          if (lead) {
-            setSelectedLeads(prev => {
-              if (prev.includes(lead.id)) {
-                // If moving back, we might want to deselect, but standard behavior is usually expanding
-                return [...prev, lead.id];
-              }
-              return [...prev, lead.id];
-            });
-            setLastSelectedIndex(nextIndex);
-          }
+          // In Google Sheets, shift+arrows selects range from an anchor
+          // For simplicity, we'll just expand selection to the new index
+          const start = Math.min(nextIndex, lastSelectedIndex);
+          const end = Math.max(nextIndex, lastSelectedIndex);
+          const rangeIds = filteredLeads.slice(start, end + 1).map(l => l._id || l.id);
+          
+          setSelectedLeads(prev => {
+            const newSelection = Array.from(new Set([...prev, ...rangeIds]));
+            return newSelection;
+          });
+          setLastSelectedIndex(nextIndex);
         }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [lastSelectedIndex, filteredLeads, selectedLeads]);
+  }, [lastSelectedIndex, filteredLeads]);
   const handleBulkAssign = (newBdm) => {
-    setLeads(leads.map(lead => selectedLeads.includes(lead.id) ? { ...lead, bdm: newBdm } : lead));
+    setLeads(leads.map(lead => selectedLeads.includes(lead._id || lead.id) ? { ...lead, bdm: newBdm } : lead));
     setSelectedLeads([]);
   };
 
@@ -477,29 +482,32 @@ export default function Leads() {
           <table className="data-table">
             <thead>
               <tr>
-                <th style={{ width: '40px' }}><input type="checkbox" onChange={(e) => setSelectedLeads(e.target.checked ? leads.map(l => l.id) : [])} /></th>
+                <th style={{ width: '40px' }}><input type="checkbox" onChange={(e) => setSelectedLeads(e.target.checked ? leads.map(l => l._id || l.id) : [])} /></th>
                 <th>Date</th><th>Lead ID</th><th>Name</th><th>Mobile</th><th>Email</th><th>State</th><th>Type 1</th><th>Type 2</th><th>Profession</th><th>CTC</th><th>BDM</th><th>Status 1</th><th>Status 2</th><th>Status 3</th><th>Activity</th>
               </tr>
             </thead>
             <tbody>
-              {filteredLeads.map((lead, index) => (
-                <tr 
-                  key={lead._id || lead.id} 
-                  className={selectedLeads.includes(lead.id) ? 'selected-row' : ''}
-                  onClick={(e) => handleRowClick(index, e)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <td onClick={(e) => e.stopPropagation()}>
-                    <input 
-                      type="checkbox" 
-                      checked={selectedLeads.includes(lead.id)} 
-                      onChange={(e) => {
-                        const checked = e.target.checked;
-                        setSelectedLeads(checked ? [...selectedLeads, lead.id] : selectedLeads.filter(id => id !== lead.id));
-                        setLastSelectedIndex(index);
-                      }} 
-                    />
-                  </td>
+              {filteredLeads.map((lead, index) => {
+                const currentId = lead._id || lead.id;
+                const isSelected = selectedLeads.includes(currentId);
+                return (
+                  <tr 
+                    key={currentId} 
+                    className={isSelected ? 'selected-row' : ''}
+                    onClick={(e) => handleRowClick(index, e)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <td onClick={(e) => e.stopPropagation()}>
+                      <input 
+                        type="checkbox" 
+                        checked={isSelected} 
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setSelectedLeads(checked ? [...selectedLeads, currentId] : selectedLeads.filter(id => id !== currentId));
+                          setLastSelectedIndex(index);
+                        }} 
+                      />
+                    </td>
                   <td>{lead.date}</td><td><span className="badge badge-secondary">{lead.leadId}</span></td><td>{lead.name}</td><td>{lead.mobile}</td><td>{lead.email}</td><td>{lead.state}</td><td>{lead.type1}</td><td>{lead.type2}</td><td>{lead.profession}</td><td>{lead.ctc}</td>
                   <td>
                     <select 
