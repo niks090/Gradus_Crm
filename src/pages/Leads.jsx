@@ -140,6 +140,7 @@ export default function Leads() {
   const [activityModalLead, setActivityModalLead] = useState(null);
   const [viewActivitiesLead, setViewActivitiesLead] = useState(null);
   const [activityData, setActivityData] = useState({ type: '', comment: '', meetingTime: '' });
+  const [lastSelectedIndex, setLastSelectedIndex] = useState(-1);
 
   const [team, setTeam] = useState([]);
   const fileInputRef = useRef(null);
@@ -349,6 +350,61 @@ export default function Leads() {
       alert("Failed to save activity: " + err.message);
     }
   };
+
+  const handleRowClick = (index, event) => {
+    const lead = filteredLeads[index];
+    if (!lead) return;
+
+    if (event.shiftKey && lastSelectedIndex !== -1) {
+      const start = Math.min(lastSelectedIndex, index);
+      const end = Math.max(lastSelectedIndex, index);
+      const rangeIds = filteredLeads.slice(start, end + 1).map(l => l.id);
+      
+      // Combine with existing selected except for those in the range to avoid duplicates, 
+      // or just set the range as the selection depending on desired behavior.
+      // Standard behavior is to select the range.
+      setSelectedLeads(Array.from(new Set([...selectedLeads, ...rangeIds])));
+    } else {
+      const isSelected = selectedLeads.includes(lead.id);
+      if (isSelected) {
+        setSelectedLeads(selectedLeads.filter(id => id !== lead.id));
+      } else {
+        setSelectedLeads([...selectedLeads, lead.id]);
+      }
+    }
+    setLastSelectedIndex(index);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.shiftKey && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+        e.preventDefault();
+        let nextIndex = lastSelectedIndex;
+        if (e.key === 'ArrowDown') {
+          nextIndex = Math.min(filteredLeads.length - 1, lastSelectedIndex + 1);
+        } else {
+          nextIndex = Math.max(0, lastSelectedIndex - 1);
+        }
+
+        if (nextIndex !== lastSelectedIndex) {
+          const lead = filteredLeads[nextIndex];
+          if (lead) {
+            setSelectedLeads(prev => {
+              if (prev.includes(lead.id)) {
+                // If moving back, we might want to deselect, but standard behavior is usually expanding
+                return [...prev, lead.id];
+              }
+              return [...prev, lead.id];
+            });
+            setLastSelectedIndex(nextIndex);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lastSelectedIndex, filteredLeads, selectedLeads]);
   const handleBulkAssign = (newBdm) => {
     setLeads(leads.map(lead => selectedLeads.includes(lead.id) ? { ...lead, bdm: newBdm } : lead));
     setSelectedLeads([]);
@@ -425,9 +481,24 @@ export default function Leads() {
               </tr>
             </thead>
             <tbody>
-              {filteredLeads.map(lead => (
-                <tr key={lead._id || lead.id}>
-                  <td><input type="checkbox" checked={selectedLeads.includes(lead.id)} onChange={(e) => setSelectedLeads(e.target.checked ? [...selectedLeads, lead.id] : selectedLeads.filter(id => id !== lead.id))} /></td>
+              {filteredLeads.map((lead, index) => (
+                <tr 
+                  key={lead._id || lead.id} 
+                  className={selectedLeads.includes(lead.id) ? 'selected-row' : ''}
+                  onClick={(e) => handleRowClick(index, e)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <td onClick={(e) => e.stopPropagation()}>
+                    <input 
+                      type="checkbox" 
+                      checked={selectedLeads.includes(lead.id)} 
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setSelectedLeads(checked ? [...selectedLeads, lead.id] : selectedLeads.filter(id => id !== lead.id));
+                        setLastSelectedIndex(index);
+                      }} 
+                    />
+                  </td>
                   <td>{lead.date}</td><td><span className="badge badge-secondary">{lead.leadId}</span></td><td>{lead.name}</td><td>{lead.mobile}</td><td>{lead.email}</td><td>{lead.state}</td><td>{lead.type1}</td><td>{lead.type2}</td><td>{lead.profession}</td><td>{lead.ctc}</td>
                   <td>
                     <select 
