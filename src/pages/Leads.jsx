@@ -140,7 +140,6 @@ export default function Leads() {
   const [selectedLeads, setSelectedLeads] = useState([]);
   const [activityModalLead, setActivityModalLead] = useState(null);
   const [viewActivitiesLead, setViewActivitiesLead] = useState(null);
-  const [viewStatusHistoryLead, setViewStatusHistoryLead] = useState(null);
   const [activityData, setActivityData] = useState({ type: '', comment: '', meetingTime: '' });
   const [lastSelectedIndex, setLastSelectedIndex] = useState(-1);
 
@@ -639,14 +638,6 @@ export default function Leads() {
                         onChange={(val) => handleStatusChange(lead._id || lead.id, val)}
                         onClear={() => handleStatusChange(lead._id || lead.id, '')}
                       />
-                      <button 
-                        className="btn-call-small"
-                        onClick={(e) => { e.stopPropagation(); setViewStatusHistoryLead(lead); }}
-                        style={{ padding: '4px', border: 'none', background: 'transparent', cursor: 'pointer', opacity: 0.6 }}
-                        title="View Status History"
-                      >
-                        🕒
-                      </button>
                     </div>
                   </td>
                   <td>
@@ -792,13 +783,13 @@ export default function Leads() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                         <span style={{ 
                           fontWeight: '600', 
-                          color: act.type === 'Call' ? '#059669' : act.type === 'Meeting' ? '#8b5cf6' : '#2563eb',
-                          backgroundColor: act.type === 'Call' ? '#d1fae5' : act.type === 'Meeting' ? '#f5f3ff' : '#dbeafe',
+                          color: act.type === 'Call' ? '#059669' : act.type === 'Meeting' ? '#8b5cf6' : act.type === 'StatusChange' ? '#d97706' : '#2563eb',
+                          backgroundColor: act.type === 'Call' ? '#d1fae5' : act.type === 'Meeting' ? '#f5f3ff' : act.type === 'StatusChange' ? '#fef3c7' : '#dbeafe',
                           padding: '2px 8px',
                           borderRadius: '12px',
                           fontSize: '0.75rem'
                         }}>
-                          {act.type === 'Call' ? '📞 Call' : act.type === 'Meeting' ? '📅 Meeting' : '💬 Message'}
+                          {act.type === 'Call' ? '📞 Call' : act.type === 'Meeting' ? '📅 Meeting' : act.type === 'StatusChange' ? '🕒 Status' : '💬 Message'}
                         </span>
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                           {new Date(act.date).toLocaleString()}
@@ -822,58 +813,6 @@ export default function Leads() {
             </div>
             <div className="modal-actions" style={{ marginTop: '1.5rem' }}>
               <button type="button" className="btn btn-secondary" onClick={() => setViewActivitiesLead(null)}>Close</button>
-            </div>
-          </div>
-        </div>
-      )}
-      {viewStatusHistoryLead && (
-        <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '500px' }}>
-            <div className="modal-header">
-              <h2>Status History: {viewStatusHistoryLead.name}</h2>
-              <button className="modal-close" onClick={() => setViewStatusHistoryLead(null)}>&times;</button>
-            </div>
-            <div style={{ maxHeight: '400px', overflowY: 'auto', paddingRight: '0.5rem' }}>
-              {(!viewStatusHistoryLead.leadActivities || !viewStatusHistoryLead.leadActivities.some(a => a.type === 'StatusChange')) ? (
-                <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '2rem 0' }}>No status changes recorded yet.</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {viewStatusHistoryLead.leadActivities.filter(a => a.type === 'StatusChange').slice().reverse().map((entry) => (
-                    <div key={entry.id || entry.date} style={{ 
-                      padding: '1rem', 
-                      border: '1px solid var(--border-color)', 
-                      borderRadius: '8px',
-                      backgroundColor: 'var(--color-background)',
-                      marginBottom: '0.5rem'
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textDecoration: 'line-through' }}>
-                            {entry.oldStatus || 'Unassigned'}
-                          </span>
-                          <span>→</span>
-                          <span style={{ 
-                            fontWeight: '600', 
-                            color: STATUS_COLORS[entry.newStatus]?.color || '#374151',
-                            backgroundColor: STATUS_COLORS[entry.newStatus]?.bg || '#f3f4f6',
-                            padding: '2px 8px',
-                            borderRadius: '12px',
-                            fontSize: '0.75rem'
-                          }}>
-                            {entry.newStatus || 'Cleared'}
-                          </span>
-                        </div>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                          {new Date(entry.date).toLocaleString()}
-                        </span>
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                        Changed by: <strong>{entry.performedBy}</strong>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
         </div>
