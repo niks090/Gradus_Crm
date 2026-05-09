@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, Contact, Briefcase, BarChart2,
   FileText, Target, CheckSquare, Calendar, Phone,
   TrendingUp, ChevronDown, ChevronUp, Settings, Search, ClipboardCheck,
-  ShieldAlert, Database
+  ShieldAlert, Database, Clock
 } from 'lucide-react';
 import { useCrm } from '../context/CrmContext';
 import './Sidebar.css';
