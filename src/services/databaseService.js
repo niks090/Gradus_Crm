@@ -242,35 +242,87 @@ const deleteMeeting = async (id) => {
 // ─────────────────────────────────────────────────
 // TARGETS
 // ─────────────────────────────────────────────────
+const normalizeTarget = (t) => {
+  if (!t) return t;
+  return {
+    ...t,
+    userId: t.userId || t.user_id || '',
+    userName: t.userName || t.user_name || '',
+    onboardTarget: t.onboardTarget || t.onboard_target || 0,
+    revenueTarget: t.revenueTarget || t.revenue_target || 0,
+    createdat: t.createdat || t.created_at || '',
+    updatedat: t.updatedat || t.updated_at || '',
+  };
+};
+
 const fetchTargets = async () => {
   const { data, error } = await supabase
     .from('targets')
     .select('*')
-    .order('createdat', { ascending: false });
-  if (error) throw error;
-  return data;
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    // Fallback if created_at doesn't exist but createdat does
+    const { data: retryData, error: retryErr } = await supabase
+      .from('targets')
+      .select('*')
+      .order('createdat', { ascending: false });
+    if (retryErr) throw retryErr;
+    return (retryData || []).map(normalizeTarget);
+  }
+  return (data || []).map(normalizeTarget);
 };
 
 const createTarget = async (payload) => {
   const record = {
     _id: uid('tg'),
-    ...payload,
-    createdat: new Date().toISOString(),
-    updatedat: new Date().toISOString(),
+    user_id: payload.userId,
+    user_name: payload.userName,
+    onboard_target: payload.onboardTarget,
+    revenue_target: payload.revenueTarget,
+    month: payload.month,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   };
   const { data, error } = await supabase.from('targets').insert(record).select().single();
-  if (error) throw error;
+  if (error) {
+    // Try camelCase if snake_case fails (for backward compatibility or mixed schemas)
+    const legacyRecord = {
+      _id: uid('tg'),
+      ...payload,
+      createdat: new Date().toISOString(),
+      updatedat: new Date().toISOString(),
+    };
+    const { data: legacyData, error: legacyErr } = await supabase.from('targets').insert(legacyRecord).select().single();
+    if (legacyErr) throw legacyErr;
+    return normalizeTarget(legacyData);
+  }
   await logToArchive('targets', 'CREATED', data);
-  return data;
+  return normalizeTarget(data);
 };
 
 const updateTarget = async (id, updates) => {
   const existing = await getById('targets', id);
-  const updated = { ...existing, ...updates, updatedat: new Date().toISOString() };
+  const updated = {
+    ...existing,
+    user_id: updates.userId !== undefined ? updates.userId : existing.user_id,
+    user_name: updates.userName !== undefined ? updates.userName : existing.user_name,
+    onboard_target: updates.onboardTarget !== undefined ? updates.onboardTarget : existing.onboard_target,
+    revenue_target: updates.revenueTarget !== undefined ? updates.revenueTarget : existing.revenue_target,
+    month: updates.month !== undefined ? updates.month : existing.month,
+    updated_at: new Date().toISOString()
+  };
+  
   const { data, error } = await supabase.from('targets').update(updated).eq('_id', id).select().single();
-  if (error) throw error;
+  if (error) {
+    // Try camelCase fallback
+    const legacyUpdate = { ...existing, ...updates, updatedat: new Date().toISOString() };
+    const { data: legacyData, error: legacyErr } = await supabase.from('targets').update(legacyUpdate).eq('_id', id).select().single();
+    if (legacyErr) throw legacyErr;
+    return normalizeTarget(legacyData);
+  }
   await logToArchive('targets', 'UPDATED', data);
-  return data;
+  return normalizeTarget(data);
 };
 
 const deleteTarget = async (id) => {
