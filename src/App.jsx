@@ -13,6 +13,7 @@ import Target from './pages/Target';
 import MasterArchive from './pages/MasterArchive';
 import Login from './pages/Login';
 import Status from './pages/Status';
+import Requests from './pages/Requests';
 import Settings from './pages/Settings';
 import { CrmProvider } from './context/CrmContext';
 const ProtectedRoute = ({ children }) => {
@@ -41,6 +42,7 @@ function App() {
             <Route path="brochures" element={<Brochures />} />
             <Route path="users" element={<Users />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="requests" element={<Requests />} />
             <Route path="settings" element={<Settings />} />
             <Route path="archive" element={<MasterArchive />} />
             <Route path="*" element={<div className="card">Page not found</div>} />

@@ -360,6 +360,34 @@ export default function Leads() {
     }
   };
 
+  const handleRequestDeletion = async () => {
+    const isAll = selectedLeads.length === 0;
+    const confirmMsg = isAll 
+      ? "Are you sure you want to request deletion of ALL leads?" 
+      : `Are you sure you want to request deletion of ${selectedLeads.length} selected leads?`;
+    
+    if (!window.confirm(confirmMsg)) return;
+    
+    const reason = window.prompt("Please provide a reason for this deletion request:");
+    if (!reason) return;
+
+    try {
+      await databaseService.createDeletionRequest({
+        requestedBy: currentUser.name,
+        requestedById: currentUser._id || currentUser.id,
+        leadIds: isAll ? 'ALL' : selectedLeads,
+        count: isAll ? leads.length : selectedLeads.length,
+        reason: reason,
+        type: isAll ? 'DELETE_ALL' : 'DELETE_SELECTED'
+      });
+      alert("Deletion request sent successfully. Wait for Admin approval.");
+      setSelectedLeads([]);
+    } catch (err) {
+      console.error("Deletion request failed:", err);
+      alert("Error sending request: " + err.message);
+    }
+  };
+
   const handleBdmChange = (leadId, newBdm) => updateLead(leadId, { bdm: newBdm });
   
   const handleStatusChange = async (leadId, value) => {
@@ -576,6 +604,9 @@ export default function Leads() {
             <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>Add Lead</button>
             {isAdmin && (
               <button className="btn btn-danger" onClick={handleDeleteAll} style={{ backgroundColor: '#ef4444', color: 'white' }}>Delete All</button>
+            )}
+            {isManager && (
+              <button className="btn btn-danger" onClick={handleRequestDeletion} style={{ backgroundColor: '#f97316', color: 'white' }}>Request Deletion</button>
             )}
           </div>
         )}

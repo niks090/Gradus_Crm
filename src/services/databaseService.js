@@ -426,6 +426,42 @@ const deleteBrochure = async (id) => {
 };
 
 // ─────────────────────────────────────────────────
+// DELETION REQUESTS
+// ─────────────────────────────────────────────────
+const fetchDeletionRequests = async () => {
+  const { data, error } = await supabase
+    .from('deletion_requests')
+    .select('*')
+    .order('createdat', { ascending: false });
+  if (error) throw error;
+  return data || [];
+};
+
+const createDeletionRequest = async (payload) => {
+  const record = {
+    _id: uid('dr'),
+    ...payload,
+    status: 'Pending',
+    createdat: new Date().toISOString(),
+    updatedat: new Date().toISOString(),
+  };
+  const { data, error } = await supabase.from('deletion_requests').insert(record).select().single();
+  if (error) throw error;
+  return data;
+};
+
+const updateDeletionRequest = async (id, status) => {
+  const { data, error } = await supabase
+    .from('deletion_requests')
+    .update({ status, updatedat: new Date().toISOString() })
+    .eq('_id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+};
+
+// ─────────────────────────────────────────────────
 // Authentication (OAuth)
 // ─────────────────────────────────────────────────
 const signInWithGoogle = async () => {
@@ -474,6 +510,10 @@ export const databaseService = {
   fetchBrochures,
   createBrochure,
   deleteBrochure,
+  // Deletion Requests
+  fetchDeletionRequests,
+  createDeletionRequest,
+  updateDeletionRequest,
   // Archive
   fetchArchive,
   fetchMasterArchive: fetchArchive,

@@ -55,12 +55,18 @@ export default function Sidebar() {
 
   const groupsToRender = [...NAV_GROUPS];
   if (isPowerUser) {
+    const adminItems = [
+      { icon: ShieldAlert, label: 'Team Management', path: '/users' },
+      { icon: Database, label: 'Master Archive', path: '/archive' }
+    ];
+    
+    if (isAdmin) {
+      adminItems.push({ icon: Clock, label: 'Requests', path: '/requests' });
+    }
+
     groupsToRender.push({
       label: 'Administration',
-      items: [
-        { icon: ShieldAlert, label: 'Team Management', path: '/users' },
-        { icon: Database, label: 'Master Archive', path: '/archive' }
-      ]
+      items: adminItems
     });
   }
 
