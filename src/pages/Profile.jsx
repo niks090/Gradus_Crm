@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { User, Mail, Lock, Shield, Save, CheckCircle, Camera } from 'lucide-react';
 import { databaseService } from '../services/databaseService';
+import { SMARTFLO_DIDS } from '../constants/telephony';
 import './TablePages.css';
 
 export default function Profile() {
@@ -215,11 +216,9 @@ export default function Profile() {
                   }}
                 >
                   <option value="">Select DID</option>
-                  <option value="918065909568">918065909568</option>
-                  <option value="918065909569">918065909569</option>
-                  <option value="918065909570">918065909570</option>
-                  <option value="918065909571">918065909571</option>
-                  <option value="918065909572">918065909572</option>
+                  {SMARTFLO_DIDS.map(did => (
+                    <option key={did} value={did}>{did}</option>
+                  ))}
                 </select>
               </div>
               <div className="form-group">

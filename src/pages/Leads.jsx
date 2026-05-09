@@ -140,6 +140,7 @@ export default function Leads() {
   const [selectedLeads, setSelectedLeads] = useState([]);
   const [activityModalLead, setActivityModalLead] = useState(null);
   const [viewActivitiesLead, setViewActivitiesLead] = useState(null);
+  const [viewStatusHistoryLead, setViewStatusHistoryLead] = useState(null);
   const [activityData, setActivityData] = useState({ type: '', comment: '', meetingTime: '' });
   const [lastSelectedIndex, setLastSelectedIndex] = useState(-1);
 
@@ -316,9 +317,33 @@ export default function Leads() {
   };
 
   const handleBdmChange = (leadId, newBdm) => updateLead(leadId, { bdm: newBdm });
-  const handleStatusChange = (leadId, statusKey, value) => {
-    // Mapping internal field names if needed, but we can just use status1, status2, status3
-    updateLead(leadId, { [statusKey]: value });
+  
+  const handleStatusChange = async (leadId, value) => {
+    try {
+      const lead = leads.find(l => (l._id === leadId || l.id === leadId));
+      if (!lead) return;
+
+      const oldStatus = lead.status1 || '';
+      if (oldStatus === value) return; // no change
+
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}').name || 'Unknown';
+      
+      const newHistoryEntry = {
+        id: Date.now(),
+        type: 'StatusChange',
+        oldStatus: oldStatus || 'Unassigned',
+        newStatus: value || 'Cleared',
+        comment: `Status changed from ${oldStatus || 'Unassigned'} to ${value || 'Cleared'}`,
+        date: new Date().toISOString(),
+        performedBy: currentUser
+      };
+
+      const updatedActivities = [...(lead.leadActivities || []), newHistoryEntry];
+      await updateLead(leadId, { status1: value, leadActivities: updatedActivities });
+    } catch (err) {
+      console.error("Failed to update status:", err);
+      alert("Error updating status: " + err.message);
+    }
   };
   
   const handleSaveActivity = async (e) => {
@@ -524,7 +549,7 @@ export default function Leads() {
             <thead>
               <tr>
                 <th style={{ width: '40px' }}><input type="checkbox" onChange={(e) => setSelectedLeads(e.target.checked ? leads.map(l => l._id || l.id) : [])} /></th>
-                <th>Date</th><th>Lead ID</th><th>Name</th><th>Mobile</th><th>Email</th><th>State</th><th>Type 1</th><th>Type 2</th><th>Profession</th><th>CTC</th><th>BDM</th><th>Status 1</th><th>Status 2</th><th>Status 3</th><th>Activity</th>
+                <th>Date</th><th>Lead ID</th><th>Name</th><th>Mobile</th><th>Email</th><th>State</th><th>Type 1</th><th>Type 2</th><th>Profession</th><th>CTC</th><th>BDM</th><th>Status</th><th>Activity</th>
               </tr>
             </thead>
             <tbody>
@@ -606,33 +631,23 @@ export default function Leads() {
                     </select>
                   </td>
                   <td>
-                    <StatusPicker 
-                      value={lead.status1 || ''} 
-                      options={STATUS_OPTIONS}
-                      colors={STATUS_COLORS}
-                      onChange={(val) => handleStatusChange(lead._id || lead.id, 'status1', val)}
-                      onClear={() => handleStatusChange(lead._id || lead.id, 'status1', '')}
-                    />
-                  </td>
-                  <td>
-                    <StatusPicker 
-                      value={lead.status2 || ''} 
-                      options={STATUS_OPTIONS}
-                      colors={STATUS_COLORS}
-                      disabled={!lead.status1}
-                      onChange={(val) => handleStatusChange(lead._id || lead.id, 'status2', val)}
-                      onClear={() => handleStatusChange(lead._id || lead.id, 'status2', '')}
-                    />
-                  </td>
-                  <td>
-                    <StatusPicker 
-                      value={lead.status3 || ''} 
-                      options={STATUS_OPTIONS}
-                      colors={STATUS_COLORS}
-                      disabled={!lead.status2}
-                      onChange={(val) => handleStatusChange(lead._id || lead.id, 'status3', val)}
-                      onClear={() => handleStatusChange(lead._id || lead.id, 'status3', '')}
-                    />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <StatusPicker 
+                        value={lead.status1 || ''} 
+                        options={STATUS_OPTIONS}
+                        colors={STATUS_COLORS}
+                        onChange={(val) => handleStatusChange(lead._id || lead.id, val)}
+                        onClear={() => handleStatusChange(lead._id || lead.id, '')}
+                      />
+                      <button 
+                        className="btn-call-small"
+                        onClick={(e) => { e.stopPropagation(); setViewStatusHistoryLead(lead); }}
+                        style={{ padding: '4px', border: 'none', background: 'transparent', cursor: 'pointer', opacity: 0.6 }}
+                        title="View Status History"
+                      >
+                        🕒
+                      </button>
+                    </div>
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
@@ -807,6 +822,58 @@ export default function Leads() {
             </div>
             <div className="modal-actions" style={{ marginTop: '1.5rem' }}>
               <button type="button" className="btn btn-secondary" onClick={() => setViewActivitiesLead(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {viewStatusHistoryLead && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <h2>Status History: {viewStatusHistoryLead.name}</h2>
+              <button className="modal-close" onClick={() => setViewStatusHistoryLead(null)}>&times;</button>
+            </div>
+            <div style={{ maxHeight: '400px', overflowY: 'auto', paddingRight: '0.5rem' }}>
+              {(!viewStatusHistoryLead.leadActivities || !viewStatusHistoryLead.leadActivities.some(a => a.type === 'StatusChange')) ? (
+                <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '2rem 0' }}>No status changes recorded yet.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {viewStatusHistoryLead.leadActivities.filter(a => a.type === 'StatusChange').slice().reverse().map((entry) => (
+                    <div key={entry.id || entry.date} style={{ 
+                      padding: '1rem', 
+                      border: '1px solid var(--border-color)', 
+                      borderRadius: '8px',
+                      backgroundColor: 'var(--color-background)',
+                      marginBottom: '0.5rem'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textDecoration: 'line-through' }}>
+                            {entry.oldStatus || 'Unassigned'}
+                          </span>
+                          <span>→</span>
+                          <span style={{ 
+                            fontWeight: '600', 
+                            color: STATUS_COLORS[entry.newStatus]?.color || '#374151',
+                            backgroundColor: STATUS_COLORS[entry.newStatus]?.bg || '#f3f4f6',
+                            padding: '2px 8px',
+                            borderRadius: '12px',
+                            fontSize: '0.75rem'
+                          }}>
+                            {entry.newStatus || 'Cleared'}
+                          </span>
+                        </div>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          {new Date(entry.date).toLocaleString()}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                        Changed by: <strong>{entry.performedBy}</strong>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

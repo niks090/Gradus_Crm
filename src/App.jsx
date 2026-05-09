@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Leads from './pages/Leads';
+import LeadsHub from './pages/LeadsHub';
 import Contacts from './pages/Contacts';
 import Onboarding from './pages/Onboarding';
 import Meetings from './pages/Meetings';
@@ -28,7 +29,10 @@ function App() {
           
           <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
-            <Route path="leads" element={<Leads />} />
+            <Route path="leads" element={<LeadsHub />} />
+            <Route path="leads/mx" element={<Leads />} />
+            <Route path="leads/fx" element={<div className="page-container" style={{display:'flex',justifyContent:'center',alignItems:'center',height:'100%'}}><div style={{textAlign:'center'}}><h2 style={{fontSize:'2rem',marginBottom:'1rem',color:'#10b981'}}>FX Leads</h2><p style={{color:'var(--text-secondary)'}}>Awaiting FX Schema Configuration...</p></div></div>} />
+            <Route path="leads/internship" element={<div className="page-container" style={{display:'flex',justifyContent:'center',alignItems:'center',height:'100%'}}><div style={{textAlign:'center'}}><h2 style={{fontSize:'2rem',marginBottom:'1rem',color:'#8b5cf6'}}>Internship Leads</h2><p style={{color:'var(--text-secondary)'}}>Awaiting Internship Schema Configuration...</p></div></div>} />
             <Route path="contacts" element={<Contacts />} />
             <Route path="onboarding" element={<Onboarding />} />
             <Route path="meetings" element={<Meetings />} />

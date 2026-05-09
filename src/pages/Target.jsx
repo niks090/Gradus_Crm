@@ -3,7 +3,7 @@ import { databaseService } from '../services/databaseService';
 import { useCrm } from '../context/CrmContext';
 import { 
   Target as TargetIcon, TrendingUp, Users, 
-  DollarSign, CheckCircle, AlertCircle, Send,
+  IndianRupee, CheckCircle, AlertCircle, Send,
   User, BarChart2
 } from 'lucide-react';
 import './Target.css';
@@ -13,6 +13,7 @@ export default function TargetPage() {
   const [targets, setTargets] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isAssigning, setIsAssigning] = useState(false);
   
   // Admin Form State
   const [formData, setFormData] = useState({
@@ -24,6 +25,8 @@ export default function TargetPage() {
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isAdmin = currentUser.role === 'Admin';
+  const isManager = currentUser.role === 'Manager';
+  const isPowerUser = isAdmin || isManager;
 
   useEffect(() => {
     loadData();
@@ -46,29 +49,40 @@ export default function TargetPage() {
 
   const handleAssign = async (e) => {
     e.preventDefault();
-    if (!formData.userId || !formData.onboardCount || !formData.revenue) return;
-
-    const selectedUser = users.find(u => u._id === formData.userId);
-    const newTarget = {
-      userId: formData.userId,
-      userName: selectedUser.name,
-      onboardTarget: parseInt(formData.onboardCount),
-      revenueTarget: parseFloat(formData.revenue),
-      month: formData.month,
-      assignedAt: new Date().toISOString()
-    };
-
-    // Check if target for this user and month already exists, then update or create
-    const existing = targets.find(t => t.userId === formData.userId && t.month === formData.month);
-    if (existing) {
-      await databaseService.updateTarget(existing._id, newTarget);
-    } else {
-      await databaseService.createTarget(newTarget);
+    if (!formData.userId || !formData.onboardCount || !formData.revenue) {
+      alert('Please fill all required fields');
+      return;
     }
 
-    setFormData({ ...formData, userId: '', onboardCount: '', revenue: '' });
-    loadData();
-    alert('Target assigned successfully!');
+    setIsAssigning(true);
+    try {
+      const selectedUser = users.find(u => u._id === formData.userId);
+      const newTarget = {
+        userId: formData.userId,
+        userName: selectedUser?.name || 'Unknown User',
+        onboardTarget: parseInt(formData.onboardCount),
+        revenueTarget: parseFloat(formData.revenue),
+        month: formData.month
+      };
+
+      // Check if target for this user and month already exists, then update or create
+      const existing = targets.find(t => t.userId === formData.userId && t.month === formData.month);
+      
+      if (existing) {
+        await databaseService.updateTarget(existing._id, newTarget);
+      } else {
+        await databaseService.createTarget(newTarget);
+      }
+
+      setFormData({ ...formData, userId: '', onboardCount: '', revenue: '' });
+      await loadData();
+      alert('Target assigned successfully!');
+    } catch (err) {
+      console.error('Failed to assign target:', err);
+      alert(`Error assigning target: ${err.message || 'Unknown error'}`);
+    } finally {
+      setIsAssigning(false);
+    }
   };
 
   // Helper to calculate achieved metrics for a user in a specific month
@@ -89,7 +103,7 @@ export default function TargetPage() {
   if (loading) return <div className="page-container"><p>Loading targets...</p></div>;
 
   // --- USER VIEW ---
-  if (!isAdmin) {
+  if (!isPowerUser) {
     const currentMonth = new Date().toISOString().slice(0, 7);
     const userTarget = targets.find(t => t.userId === currentUser._id && t.month === currentMonth);
     const { achievedCount, achievedRevenue } = calculateAchieved(currentUser._id, currentMonth);
@@ -152,7 +166,7 @@ export default function TargetPage() {
             <div className="card target-status-card">
               <div className="target-card-header">
                 <div className="target-icon-box bg-success-light text-success">
-                  <DollarSign size={24} />
+                  <IndianRupee size={24} />
                 </div>
                 <span className="target-label">Revenue Goal</span>
               </div>
@@ -239,7 +253,7 @@ export default function TargetPage() {
             <div className="form-group">
               <label>Revenue Target (₹)</label>
               <div className="input-wrapper">
-                <DollarSign size={18} className="input-icon" />
+                <IndianRupee size={18} className="input-icon" />
                 <input 
                   type="number" 
                   placeholder="e.g. 50000" 
@@ -260,8 +274,13 @@ export default function TargetPage() {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary w-100">
-              <Send size={16} /> Assign Target
+            <button 
+              type="submit" 
+              className="btn btn-primary w-100" 
+              disabled={isAssigning}
+              style={{ opacity: isAssigning ? 0.7 : 1, cursor: isAssigning ? 'not-allowed' : 'pointer' }}
+            >
+              <Send size={16} /> {isAssigning ? 'Assigning...' : 'Assign Target'}
             </button>
           </form>
         </div>
