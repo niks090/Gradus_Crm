@@ -280,6 +280,51 @@ export default function Leads() {
     reader.readAsText(file);
   };
 
+  const handleExportCsv = () => {
+    try {
+      if (filteredLeads.length === 0) {
+        alert("No data available to export.");
+        return;
+      }
+
+      const headers = [
+        "Date", "Lead ID", "Name", "Mobile", "Email", "State", 
+        "Type 1", "Type 2", "Profession", "CTC", "BDM", "Status"
+      ];
+
+      const csvRows = filteredLeads.map(lead => {
+        return [
+          lead.date || '',
+          lead.leadId || '',
+          `"${(lead.name || '').replace(/"/g, '""')}"`,
+          lead.mobile || '',
+          lead.email || '',
+          `"${(lead.state || '').replace(/"/g, '""')}"`,
+          `"${(lead.type1 || '').replace(/"/g, '""')}"`,
+          `"${(lead.type2 || '').replace(/"/g, '""')}"`,
+          `"${(lead.profession || '').replace(/"/g, '""')}"`,
+          `"${(lead.ctc || '').replace(/"/g, '""')}"`,
+          `"${(lead.bdm || '').replace(/"/g, '""')}"`,
+          lead.status1 || ''
+        ].join(',');
+      });
+
+      const csvContent = [headers.join(','), ...csvRows].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `Leads_Export_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("Export Error:", err);
+      alert("Failed to export CSV: " + err.message);
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -524,6 +569,9 @@ export default function Leads() {
             <input type="file" accept=".csv" ref={fileInputRef} style={{ display: 'none' }} onChange={handleImportCsv} />
             <button className="btn btn-secondary" disabled={isImporting} onClick={() => fileInputRef.current.click()}>
               {isImporting ? 'Importing...' : 'Upload CSV'}
+            </button>
+            <button className="btn btn-secondary" onClick={handleExportCsv}>
+              Export CSV
             </button>
             <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>Add Lead</button>
             {isAdmin && (
